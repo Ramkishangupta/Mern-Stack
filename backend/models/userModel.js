@@ -4,6 +4,8 @@ const validator = require('validator')
 
 const Schema = mongoose.Schema
 
+
+
 const userSchema = new Schema({
   email: {
     type: String,
@@ -26,9 +28,9 @@ userSchema.statics.signup = async function(email, password) {
     if(!validator.isEmail(email)){
         throw Error('email is not valid');
     }
-    if(!validator.isStrongPassword(password)){
-        throw Error('password is not strong');
-    }
+    // if(!validator.isStrongPassword(password)){
+    //     throw Error('password is not strong');
+    // }
   const exists = await this.findOne({ email })
 
   if (exists) {
@@ -41,6 +43,25 @@ userSchema.statics.signup = async function(email, password) {
   const user = await this.create({ email, password: hash })
 
   return user
+}
+
+userSchema.statics.login= async function(email,password){
+      //validation
+      if(!email || !password){
+        throw Error('All fieds must be filled');
+    }
+    const user = await this.findOne({ email })
+
+    if (!user) {
+      throw Error('Incorrect Email')
+    }
+
+    const match = await bcrypt.compare(password,user.password)
+
+    if(!match){
+      throw Error("Incorrect Password")
+    }
+    return user;
 }
 
 module.exports = mongoose.model('User', userSchema)
